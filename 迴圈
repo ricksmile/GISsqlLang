@@ -1,0 +1,58 @@
+--part1
+--宣告游標需要用到的參數
+DECLARE @stopID nvarchar(50), @lon nvarchar(50), @lat nvarchar(50)
+ 
+--定義游標的資料內容
+DECLARE cur_Products CURSOR 
+FOR SELECT stopID, lon, lat FROM BusStop_桃園
+   
+--開啟游標
+OPEN cur_Products;
+ 
+--擷取游標內容
+FETCH NEXT FROM cur_Products INTO @stopID, @lon, @lat
+ 
+WHILE @@FETCH_STATUS = 0
+BEGIN
+ PRINT @stopID
+  FETCH NEXT FROM cur_Products INTO @stopID, @lon, @lat
+END
+ 
+--關閉游標
+CLOSE cur_Products;
+ 
+--結束游標
+DEALLOCATE cur_Products;
+
+
+
+--par2
+
+--宣告游標需要用到的參數
+DECLARE @stopID nvarchar(50), @lon float, @lat float
+ 
+--定義游標的資料內容
+DECLARE cur_Products CURSOR 
+FOR SELECT stopID, lon, lat FROM BusStop_桃園
+   
+--開啟游標
+OPEN cur_Products;
+ 
+--擷取游標內容
+FETCH NEXT FROM cur_Products INTO @stopID, @lon, @lat
+ 
+WHILE @@FETCH_STATUS = 0
+BEGIN
+ --PRINT @lon+@lat
+  exec sp_84to97  'BusStop_桃園' ,@stopID,@lon,@lat;
+ 
+  FETCH NEXT FROM cur_Products INTO @stopID, @lon, @lat
+  
+END
+ 
+--關閉游標
+CLOSE cur_Products;
+ 
+--結束游標
+DEALLOCATE cur_Products;
+
