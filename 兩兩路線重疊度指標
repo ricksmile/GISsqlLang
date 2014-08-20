@@ -1,0 +1,38 @@
+Create Proc sp_LineOverLap 
+  @Mode int ,
+  @roadname1 nvarchar(50),@goback1 int,
+  @roadname2 nvarchar(50),@goback2 int
+As 
+BEGIN
+--市區對市區
+ if @Mode='1'
+select  a.roadname as 路線編號,goback as 去返程,
+a.line.STIntersection(b.line).STArea() /a.line.STArea() as '重疊程度'
+ from 
+ (select  roadname, goback, geog.STBuffer(10) as line  from [桃園市區公車線型資料]
+ where  roadname=@roadname1  and goback=@goback1
+ 
+ ) a  ,
+  (select  geog.STBuffer(10) as line  from [桃園市區公車線型資料]
+ where  roadname=@roadname2  and goback=@goback2
+ 
+ ) b
+ 
+   
+   
+   
+--市區對公路
+ if @Mode='2' 
+select  a.roadname as 路線編號,goback as 去返程,
+a.line.STIntersection(b.line).STArea() /a.line.STArea() as '重疊程度'
+ from 
+ (select  roadname, goback, geog.STBuffer(10) as line  from [桃園市區公車線型資料]
+ where  roadname=@roadname1  and goback=@goback1
+ 
+ ) a  ,
+  (select  geog.STBuffer(10) as line  from [桃園公路客運線型資料]
+ where  roadname=@roadname2  and goback=@goback2
+ 
+ ) b
+ 
+    END
