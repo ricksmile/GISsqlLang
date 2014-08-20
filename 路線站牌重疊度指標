@@ -1,0 +1,36 @@
+--分組計數
+SELECT DISTINCT nameZh, 
+COUNT(*) AS CountField FROM 市區公車97 
+GROUP BY nameZh HAVING COUNT(*) > 1 ORDER BY CountField
+
+
+--完整查詢
+
+select 
+stop.roadname,
+stop.goback,
+stop.nameZh,
+stop.SelfCountField,
+stopcount.TotalCountField,
+(stopcount.TotalCountField-stop.SelfCountField) as passCount 
+from 
+(
+select DISTINCT  roadname,goback,nameZh, 
+COUNT(*) AS SelfCountField from 
+(select roadname,goback,nameZh from 市區公車97
+union
+select roadname,goback,nameZh from 公路客運97) as tmp
+GROUP BY roadname,goback,nameZh 
+) as stop 
+
+join(
+SELECT DISTINCT  goback,nameZh,
+COUNT(*) AS TotalCountField FROM  
+(select roadname,goback,nameZh from 市區公車97
+union
+select roadname,goback,nameZh from 公路客運97) as tmp
+
+GROUP BY goback,nameZh 
+) stopcount on
+stop.goback=stopcount.goback and 
+stop.nameZh=stopcount.nameZh
