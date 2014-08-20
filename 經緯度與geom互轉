@@ -1,0 +1,11 @@
+
+--1
+select 
+geometry::STGeomFromText('POINT('+lon+' '+lat+')', 4326)
+ from 市區公車97
+
+
+
+--2
+update 市區公車97  set 
+geog=geography::STGeomFromText(geom.STAsText() ,4326)
