@@ -1,0 +1,97 @@
+--市區公車300公尺
+
+
+select  
+ a.roadname,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STBuffer(300).STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 桃園市區公車線形資料 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ 
+ a.geog.STBuffer(300).STIntersects(b.geog) !=0 and 
+ a.geog.STBuffer(300).STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.roadname
+
+
+
+
+--市區公車站牌300公尺服務範圍人口數
+select  
+ a.num,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 市區公車站牌300公尺服務範圍_1 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ 
+ a.geog.STIntersects(b.geog) !=0 and 
+ a.geog.STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.num
+ 
+ 
+--市區公車與公路客運站牌300公尺服務範圍人口數
+ 
+ select  
+ a.num,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 市區公車與公路客運站牌300公尺服務範圍_1 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ 
+ a.geog.STIntersects(b.geog) !=0 and 
+ a.geog.STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.num
+ 
+--全境內含免費公車站牌300公尺服務範圍人口數 
+ 
+ 
+ select  
+ a.num,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 全境內含免費公車站牌300公尺服務範圍_1 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ 
+ a.geog.STIntersects(b.geog) !=0 and 
+ a.geog.STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.num
+ 
+ 
+ 
+ 
+ 
