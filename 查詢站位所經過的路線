@@ -1,0 +1,6 @@
+SELECT   * FROM  
+(select roadname,goback,nameZh from 市區公車97
+union
+select roadname,goback,nameZh from 公路客運97) tmp
+
+where  tmp.goback='1' and tmp.nameZh='上內壢' 
