@@ -1,0 +1,23 @@
+select 
+a.["routeName"],a.["goback"],a.["seqno"],a.["nameZh"], 
+b.["goback"],b.["seqno"],b.["nameZh"],
+SQRT(POWER(a.["X_1"]-b.["X_1"],2)+POWER(a.["Y_1"]-b.["Y_1"],2)) as distant
+from 
+(select * from 公路客運97) a,(select * from 公路客運97) b
+where a.["routeName"]=b.["routeName"] and 
+a.["goback"]=b.["goback"] and a.["nameZh"]!=b.["nameZh"]
+and b.["seqno"]-a.["seqno"]=1
+
+
+
+
+
+select 
+a.roadname,a.goback,a.seq,a.nameZh, 
+b.goback,b.seq,b.nameZh,
+SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2)) as distant
+from 
+(select * from 市區公車97) a,(select * from 市區公車97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 and a.roadname='701'
