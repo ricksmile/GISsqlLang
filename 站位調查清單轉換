@@ -1,0 +1,68 @@
+1. 搜尋路線名稱
+
+select distinct Capital_Project as roadType, O_RouteNo as RouteNo  from StopandRoute  order by
+Capital_Project
+
+
+2.如果選擇路線'5000'
+
+
+
+select t1.RouteNo as '路線編號',
+t1.stopID,
+t1.Stopname as '站牌名稱',
+t1.newStopname as '更新站牌名稱',
+t1.RodShelter as '站牌型式',
+t2.*,
+t1.FileNameH as 站牌群組照片
+from 
+
+(select  Numbers as RouteNo,  SystemNumber as StopID,
+Destination as Stopname ,RevisionDescription as newStopname,RodShelter,FileNameH
+
+ from RouteVerification)  t1 
+ join (
+ select 
+ locationX as X,locationy as Y,
+ investigators as 調查員,
+ InvestigationDate as  調查日期,
+DeviceNumber  as  StopID, 
+--StatioName as 站牌名稱,
+Siteaddress as 站牌地址,
+AddressDirection as 站牌方向,
+CarFlow as 車流向,
+StationLandmark as 地標,
+BerthLength as 停靠區長度,
+UpstreamStation  as 上游距站區10公尺,
+UpstreamDistance as 上游路口距離,
+UpstreamRoadName as 上游路口名,
+DownstreamStation as 下游距站區10公尺,
+DownstreamDistance as 下游路口距離,
+DownstreamRoadName as 下游路口名,
+ISNODitch as 水溝,
+ISNOPhotoD as 水溝拍照,
+ISNOKongGai as 人孔蓋 ,
+ISNOPhotoE   as  人孔蓋拍照,
+SidewalkWidth as 人行道寬度,
+ISNOArcade as 騎樓,
+ISNOShelter as 候車亭,
+FNumbers as 候車亭數量,
+ISNOIntelligentStop as 智慧型站牌,
+GNumbers as 智慧型站牌數量,
+ISNOPhotoG as 智慧型拍照,
+ISNOPhotoF as 候車亭拍照,
+
+FileNameA as 現場站名照片,
+FileNameB as 現場地址照片,
+FileNameC as 停靠區照片,
+FileNameD as 水溝照片,
+FileNameE as 人孔蓋照片,
+FileNameF as 候車亭照片,
+FileNameG as 智慧型站牌照片
+ 
+
+ from StopVerification
+ 
+ ) t2 on t1.StopID=t2.StopID
+ 
+  where  t1.RouteNo='5000'
