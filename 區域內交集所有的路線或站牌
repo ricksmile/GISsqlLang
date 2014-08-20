@@ -1,0 +1,43 @@
+--part1
+
+
+--交集路線
+DECLARE @g geometry;
+SET @g = geometry::STGeomFromText('POLYGON((
+121.295925 25.009981,
+121.306868 25.015134,
+121.304272 25.005431,
+121.282750 25.004711,
+121.295925 25.009981 
+))', 4326);
+
+select distinct  roadname
+from 
+(
+select  roadname,nameZh, @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom 
+from 市區公車97) as tmp
+where  tmp.geom !='GEOMETRYCOLLECTION EMPTY'
+
+
+--交集站牌
+DECLARE @g geometry;
+SET @g = geometry::STGeomFromText('POLYGON((
+121.295925 25.009981,
+121.306868 25.015134,
+121.304272 25.005431,
+121.282750 25.004711,
+121.295925 25.009981 
+))', 4326);
+
+select distinct  nameZh
+from 
+(
+select  nameZh, @g.STIntersection(geometry::STGeomFromText(geom.STAsText() ,4326)).STAsText() as geom 
+from 市區公車97) as tmp
+where  tmp.geom !='GEOMETRYCOLLECTION EMPTY'
+
+
+
+
+
+
