@@ -1,0 +1,112 @@
+
+-- 單一站牌400公尺查詢  單一區域計數
+select  a.roadname,a.nameZh,a.seq,a.goback,b.TOWN,b.vill, 
+a.geog.STBuffer(400).STIntersection(b.geog) as geoq ,
+b.peoplecnt,
+a.geog.STBuffer(400).STIntersection(b.geog).STArea() as area,
+b.geog.STArea() as toatalArea,
+ROUND(((a.geog.STBuffer(400).STIntersection(b.geog).STArea())/b.geog.STArea()),5) as rate,
+(b.peoplecnt*
+ROUND(((a.geog.STBuffer(400).STIntersection(b.geog).STArea())/b.geog.STArea()),5)) as rateCnt
+ from 市區公車97 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ nameZh='健行科技大學' and
+ a.geog.STBuffer(400).STIntersects(b.geog) !=0 and 
+ a.geog.STBuffer(400).STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ 
+ -- 單一站牌400公尺查詢  全區域計數
+ select  
+ a.roadname,a.nameZh,a.seq,a.goback,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STBuffer(400).STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 市區公車97 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ nameZh='健行科技大學' and
+ a.geog.STBuffer(400).STIntersects(b.geog) !=0 and 
+ a.geog.STBuffer(400).STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.roadname,a.nameZh,a.seq,a.goback
+
+
+---sql 預存程序
+CREATE PROCEDURE sp_stopservice 
+@Mode VARCHAR(50),
+@RoadName VARCHAR(50),
+@Name VARCHAR(50),
+@Seq VARCHAR(50),
+@Goback VARCHAR(50),
+@meter int
+AS
+--DECLARE
+--變數宣告
+--@Degree INT,
+
+
+BEGIN
+if @Mode='1'
+select  a.roadname,a.nameZh,a.seq,a.goback,b.TOWN,b.vill, 
+a.geog.STBuffer(@meter).STIntersection(b.geog) as geoq ,
+b.peoplecnt,
+a.geog.STBuffer(@meter).STIntersection(b.geog).STArea() as area,
+b.geog.STArea() as toatalArea,
+ROUND(((a.geog.STBuffer(@meter).STIntersection(b.geog).STArea())/b.geog.STArea()),5) as rate,
+(b.peoplecnt*
+ROUND(((a.geog.STBuffer(@meter).STIntersection(b.geog).STArea())/b.geog.STArea()),5)) as rateCnt
+ from 市區公車97 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where
+ roadname=@RoadName and 
+ nameZh=@Name and 
+ seq=@Seq and 
+ goback=@Goback and
+ a.geog.STBuffer(@meter).STIntersects(b.geog) !=0 and 
+ a.geog.STBuffer(@meter).STIntersection(b.geog).STArea()>1 --<1面積太小了)
+--exec sp_stopservice 1,1,'上內壢',18,1,400
+if @Mode='S1'
+select  
+ a.roadname,a.nameZh,a.seq,a.goback,
+ROUND(
+sum(
+b.peoplecnt*
+ROUND(((a.geog.STBuffer(@meter).STIntersection(b.geog).STArea())/b.geog.STArea()),5)
+) 
+,0)
+
+as rateCnt
+ from 市區公車97 a,
+  (select a.CODEBASE,VILL_ID,VILL,TOWN_ID,town,MaleCnt+FemaleCnt as peoplecnt,geog from 人口密度最小統計區 a join 
+ 人口密度最小社經資料 b on  a.CODEBASE=b.Codebase) b
+ where 
+ roadname=@RoadName and 
+ nameZh=@Name and 
+ seq=@Seq and 
+ goback=@Goback and
+ a.geog.STBuffer(@meter).STIntersects(b.geog) !=0 and 
+ a.geog.STBuffer(@meter).STIntersection(b.geog).STArea()>1--<1面積太小了
+ 
+ group by a.roadname,a.nameZh,a.seq,a.goback
+
+
+End
+
+
+
+--exec sp_stopservice 1,1,'上內壢',18,1,400
+--exec sp_stopservice S1,1,'上內壢',18,1,400
+
+ 
+ 
+ 
+ 
