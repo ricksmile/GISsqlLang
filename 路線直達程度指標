@@ -1,0 +1,418 @@
+
+--道路總合
+ 
+select 
+a.roadname, 
+a.goback, 
+sum(SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2))) as distant
+from 
+(select * from 市區公車97) a,(select * from 市區公車97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 
+GROUP BY a.roadname ,a.goback
+
+
+--站 序最大值與最小值
+select 
+ stop.roadname, goback, MIN(stop.seq) as minseq,MAX (stop.seq) as maxseq
+from 
+市區公車97 stop
+GROUP BY stop.roadname ,goback
+
+
+
+--最小站序的經緯度
+select  minstop.roadname,minstop.goback, lon, lat
+from 市區公車97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+from 市區公車97 group by roadname,goback) as idview
+WHERE 
+minstop.roadname = idview.roadname and   
+minstop.seq = idview.minseq and
+minstop.goback= idview.goback
+
+
+
+--最大站序的經緯度
+select  maxstop.roadname,maxstop.goback, lon, lat
+from 市區公車97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 市區公車97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback
+
+
+
+--小雛型
+--以站序最大值與最小值為主體
+select 
+stop.roadname,
+stop.goback,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat
+from 
+(select 
+ roadname, 
+ goback, 
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 市區公車97 
+ GROUP BY roadname ,goback) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.roadname,minstop.goback, lon, lat
+ from 市區公車97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+ from 市區公車97 group by roadname,goback) as idview
+ WHERE 
+ minstop.roadname = idview.roadname and   
+ minstop.seq = idview.minseq and
+ minstop.goback= idview.goback) as minstop on
+ 
+ stop.roadname=minstop.roadname and
+ stop.goback=minstop.goback
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.roadname,maxstop.goback, lon, lat
+from 市區公車97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 市區公車97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback) as  maxstop on
+ 
+ stop.roadname=maxstop.roadname and
+ stop.goback=maxstop.goback
+ 
+
+--final 市區公車
+--以站序最大值與最小值為主體
+select 
+stop.roadname,
+stop.goback,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat,
+minstop.geog.STDistance(maxstop.geog) as sdistant,
+distant,
+minstop.geog.STDistance(maxstop.geog)/distant as number
+from 
+(select 
+ roadname, 
+ goback, 
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 市區公車97 
+ GROUP BY roadname ,goback) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.roadname,minstop.goback,  lon,  lat ,geog
+ from 市區公車97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+ from 市區公車97 group by roadname,goback) as idview
+ WHERE 
+ minstop.roadname = idview.roadname and   
+ minstop.seq = idview.minseq and
+ minstop.goback= idview.goback) as minstop on
+ 
+ stop.roadname=minstop.roadname and
+ stop.goback=minstop.goback
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.roadname,maxstop.goback,  lon,  lat ,geog
+from 市區公車97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 市區公車97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback) as  maxstop on
+ 
+ stop.roadname=maxstop.roadname and
+ stop.goback=maxstop.goback
+join 
+--道路總長度
+(select 
+a.roadname, 
+a.goback, 
+sum(SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2))) as distant
+from 
+(select * from 市區公車97) a,(select * from 市區公車97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 
+GROUP BY a.roadname ,a.goback ) as roadSUM on 
+ stop.roadname=roadSUM.roadname and
+ stop.goback=roadSUM.goback
+ 
+ --客運路線 final 
+
+--以站序最大值與最小值為主體
+select 
+stop.roadname,
+stop.goback,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat,
+minstop.geog.STDistance(maxstop.geog) as sdistant,
+distant,
+minstop.geog.STDistance(maxstop.geog)/distant as number
+from 
+(select 
+ roadname, 
+ goback, 
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 公路客運97 
+ GROUP BY roadname ,goback) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.roadname,minstop.goback,  lon,  lat ,geog
+ from 公路客運97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+ from 公路客運97 group by roadname,goback) as idview
+ WHERE 
+ minstop.roadname = idview.roadname and   
+ minstop.seq = idview.minseq and
+ minstop.goback= idview.goback) as minstop on
+ 
+ stop.roadname=minstop.roadname and
+ stop.goback=minstop.goback
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.roadname,maxstop.goback,  lon,  lat ,geog
+from 公路客運97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 公路客運97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback) as  maxstop on
+ 
+ stop.roadname=maxstop.roadname and
+ stop.goback=maxstop.goback
+join 
+--道路總長度
+(select 
+a.roadname, 
+a.goback, 
+sum(SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2))) as distant
+from 
+(select * from 公路客運97) a,(select * from 公路客運97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 
+GROUP BY a.roadname ,a.goback ) as roadSUM on 
+ stop.roadname=roadSUM.roadname and
+ stop.goback=roadSUM.goback
+ 
+
+
+
+--免費公車
+select 
+stop.allname,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat,
+minstop.geog.STDistance(maxstop.geog) as sdistant,
+distant,
+minstop.geog.STDistance(maxstop.geog)/distant as number
+from 
+(select 
+ allname ,  
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 免費公車97 
+ GROUP BY allname ) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.allname,  lon,  lat ,geog
+ from 免費公車97 minstop,
+(select allname, MIN(seq) as minseq
+ from 免費公車97 group by allname) as idview
+ WHERE 
+ minstop.allname = idview.allname and   
+ minstop.seq = idview.minseq ) as minstop on
+ 
+ stop.allname=minstop.allname 
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.allname,  lon,  lat ,geog
+from 免費公車97 maxstop,
+(select allname, max(seq) as maxseq
+from 免費公車97 group by allname) as idview
+WHERE 
+maxstop.allname = idview.allname and   
+maxstop.seq = idview.maxseq ) as  maxstop on
+ 
+ stop.allname=maxstop.allname 
+ 
+
+ 
+join 
+--道路總長度
+
+(select allname,geog.STLength() as distant from 桃園市免費公車線形資料) as b on
+stop.allname=b.AllName
+
+
+
+
+
+
+
+--預存程序
+Create Proc sp_directDgree @a int
+As 
+begin
+  if @a=1
+  select 
+stop.roadname,
+stop.goback,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat,
+minstop.geog.STDistance(maxstop.geog) as sdistant,
+distant,
+minstop.geog.STDistance(maxstop.geog)/distant as number
+from 
+(select 
+ roadname, 
+ goback, 
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 市區公車97 
+ GROUP BY roadname ,goback) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.roadname,minstop.goback,  lon,  lat ,geog
+ from 市區公車97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+ from 市區公車97 group by roadname,goback) as idview
+ WHERE 
+ minstop.roadname = idview.roadname and   
+ minstop.seq = idview.minseq and
+ minstop.goback= idview.goback) as minstop on
+ 
+ stop.roadname=minstop.roadname and
+ stop.goback=minstop.goback
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.roadname,maxstop.goback,  lon,  lat ,geog
+from 市區公車97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 市區公車97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback) as  maxstop on
+ 
+ stop.roadname=maxstop.roadname and
+ stop.goback=maxstop.goback
+join 
+--道路總長度
+(select 
+a.roadname, 
+a.goback, 
+sum(SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2))) as distant
+from 
+(select * from 市區公車97) a,(select * from 市區公車97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 
+GROUP BY a.roadname ,a.goback ) as roadSUM on 
+ stop.roadname=roadSUM.roadname and
+ stop.goback=roadSUM.goback
+ 
+  else if @a=2
+  select 
+stop.roadname,
+stop.goback,
+stop.minseq,
+minstop.lon,
+minstop.lat,
+stop.maxseq,
+maxstop.lon,
+maxstop.lat,
+minstop.geog.STDistance(maxstop.geog) as sdistant,
+distant,
+minstop.geog.STDistance(maxstop.geog)/distant as number
+from 
+(select 
+ roadname, 
+ goback, 
+ MIN(seq) as minseq,
+ MAX (seq) as maxseq
+ from 
+ 公路客運97 
+ GROUP BY roadname ,goback) as  stop   join
+ --最小站序的經緯度子查詢
+(select  minstop.roadname,minstop.goback,  lon,  lat ,geog
+ from 公路客運97 minstop,
+(select roadname,goback, MIN(seq) as minseq
+ from 公路客運97 group by roadname,goback) as idview
+ WHERE 
+ minstop.roadname = idview.roadname and   
+ minstop.seq = idview.minseq and
+ minstop.goback= idview.goback) as minstop on
+ 
+ stop.roadname=minstop.roadname and
+ stop.goback=minstop.goback
+ 
+ join
+ --最大站序的經緯度子查詢
+(select  maxstop.roadname,maxstop.goback,  lon,  lat ,geog
+from 公路客運97 maxstop,
+(select roadname,goback, max(seq) as maxseq
+from 公路客運97 group by roadname,goback) as idview
+WHERE 
+maxstop.roadname = idview.roadname and   
+maxstop.seq = idview.maxseq and
+maxstop.goback= idview.goback) as  maxstop on
+ 
+ stop.roadname=maxstop.roadname and
+ stop.goback=maxstop.goback
+join 
+--道路總長度
+(select 
+a.roadname, 
+a.goback, 
+sum(SQRT(POWER(a.X-b.X,2)+POWER(a.Y-b.Y,2))) as distant
+from 
+(select * from 公路客運97) a,(select * from 公路客運97) b
+where a.roadname=b.roadname and 
+a.goback=b.goback and a.nameZh!=b.nameZh
+and b.seq-a.seq=1 
+GROUP BY a.roadname ,a.goback ) as roadSUM on 
+ stop.roadname=roadSUM.roadname and
+ stop.goback=roadSUM.goback
+end
+ 
+ 
+
