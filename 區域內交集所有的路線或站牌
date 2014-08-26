@@ -38,6 +38,77 @@ where  tmp.geom !='GEOMETRYCOLLECTION EMPTY'
 
 
 
+--par2
+
+USE [tester]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_scopeOfValue]    Script Date: 08/26/2014 11:29:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Proc [dbo].[sp_scopeOfValue] 
+@Mode int , @x1 nvarchar(50),@y1 nvarchar(50),@x2 nvarchar(50),@y2 nvarchar(50),
+@x3 nvarchar(50),@y3 nvarchar(50),@x4 nvarchar(50),@y4 nvarchar(50)
+As 
+begin
+DECLARE @g geometry;
+ --交集路線
+ if @Mode=1
+ begin
+SET @g = geometry::STGeomFromText('POLYGON((
+'+@x1+' '+@y1+',
+'+@x2+' '+@y2+',
+'+@x3+' '+@y3+',
+'+@x4+' '+@y4+',
+'+@x1+' '+@y1+'
+))', 4326);
+
+select distinct roadtype, roadname
+from 
+(
+select  '市區公車' as roadtype, roadname,nameZh, @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom 
+from 市區公車97 union
+select  '公路客運' as roadtype , roadname,nameZh, @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom
+ 
+ from 公路客運97 union
+ 
+select  '免費公車' as roadtype , allname as roadname,stop as nameZh , @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom
+from 免費公車97
+) as tmp
+where  tmp.geom !='GEOMETRYCOLLECTION EMPTY';
+
+end
+--交集站牌
+
+else if @Mode=2
+begin
+
+SET @g = geometry::STGeomFromText('POLYGON((
+'+@x1+' '+@y1+',
+'+@x2+' '+@y2+',
+'+@x3+' '+@y3+',
+'+@x4+' '+@y4+',
+'+@x1+' '+@y1+'
+))', 4326);
+
+select distinct  nameZh,geom
+from 
+(
+select  '市區公車' as roadtype, roadname,nameZh, @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom 
+from 市區公車97 union
+select  '公路客運' as roadtype , roadname,nameZh, @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom
+ 
+ from 公路客運97 union
+ 
+select  '免費公車' as roadtype , allname as roadname,stop as nameZh , @g.STIntersection(geometry::STGeomFromText(geog.STAsText() ,4326)).STAsText() as geom
+from 免費公車97
+) as tmp
+where  tmp.geom !='GEOMETRYCOLLECTION EMPTY';
+end
+
+end
 
 
 
