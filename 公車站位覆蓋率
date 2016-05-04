@@ -1,0 +1,68 @@
+
+
+--門牌資料與戶籍資料比對應該要一致
+
+select  *from  門牌資料   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS
+
+
+select  *from  門牌資料  left   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS
+
+select  *from  門牌資料  right   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS
+
+
+--應該是使用這個
+--對應總人口數為 426409 人 無效人口數　434479-426409 =８０７０人
+
+select  *from  門牌資料  left   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+
+
+
+
+--站位交集門牌數所屬總人口數　279292 人
+
+select  count(*)as total    from  站位300公尺內服務的門牌  left   join 戶籍資料 
+on 站位300公尺內服務的門牌.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+
+
+
+--站牌服務涵蓋率65%
+
+
+
+--東區 總人口數 202580
+select  COUNT(*) from  門牌資料  left   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='東區'
+
+--東區 站位交集門牌數所屬總人口數 135488
+select  COUNT(*) from  站位300公尺內服務的門牌  left   join 戶籍資料 
+on 站位300公尺內服務的門牌.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='東區'
+
+
+--北區 總人口數 147799
+select  COUNT(*) from  門牌資料  left   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='北區'
+
+--北區 站位交集門牌數所屬總人口數 99976
+select  COUNT(*) from  站位300公尺內服務的門牌  left   join 戶籍資料 
+on 站位300公尺內服務的門牌.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='北區'
+
+--香山區 總人口數 76030
+select  COUNT(*) from  門牌資料  left   join 戶籍資料 
+on 門牌資料.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='香山區'
+
+--香山區 站位交集門牌數所屬總人口數 43828
+select  COUNT(*) from  站位300公尺內服務的門牌  left   join 戶籍資料 
+on 站位300公尺內服務的門牌.Address = 戶籍資料.ADDRESS where 戶籍資料.TOWN_ID !=''
+and 戶籍資料.T_Name='香山區'
+
+
+
