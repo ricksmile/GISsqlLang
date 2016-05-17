@@ -1,3 +1,4 @@
 clip: http://gis.stackexchange.com/questions/2485/clipping-a-sqlgeometry
 
 dissovle :2012 版本 https://blogs.msdn.microsoft.com/edkatibah/2011/04/27/spatial-aggregates-in-sql-server-denali/
+           https://gdbgeek.wordpress.com/2012/07/16/sql-server-2012-fun-with-geometry-aggregates/
