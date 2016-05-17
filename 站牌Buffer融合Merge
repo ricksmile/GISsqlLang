@@ -1,0 +1,1 @@
+select '1' as id,geography::UnionAggregate( geography::STGeomFromText(geom.STAsText() ,4326).STBuffer(150)) as shap    from Stop
