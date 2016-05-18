@@ -1,0 +1,18 @@
+CREATE PROCEDURE mysp_QueryData (
+@id nvarchar(50),
+@roadname nvarchar(50) output
+)
+AS
+BEGIN
+    SELECT @roadname = ROADTYPE
+      FROM RoadMapHSC
+     WHERE roadname = @id;
+END
+
+DECLARE @lname nvarchar(50);
+EXEC mysp_QueryData '中正路',@lname output;
+select @lname as pp;
+
+
+
+select * from RoadMapHSC
