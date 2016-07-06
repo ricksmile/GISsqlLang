@@ -1,0 +1,161 @@
+https://ask.sqlservercentral.com/questions/113547/split-polyline-feature-in-sql-server-2012.html
+
+
+ 
+ CREATE SCHEMA GeometryFunction AUTHORIZATION dbo;
+5. GO
+ 
+ CREATE FUNCTION GeometryFunction.ShortestPath(@L GEOMETRY, @P GEOMETRY)
+ 
+     RETURNS GEOMETRY
+10.     AS
+     BEGIN
+         IF @L IS NULL OR @P IS NULL
+             RETURN NULL
+         RETURN @P.STBuffer(0.000001).ShortestLineTo(@L);
+15.     END
+ GO
+ 
+ CREATE FUNCTION GeometryFunction.ShortestPathIntersectionPoint(@L GEOMETRY, @P GEOMETRY)
+ 
+20.     RETURNS GEOMETRY
+     AS
+     BEGIN
+         IF @L IS NULL OR @P IS NULL
+             RETURN NULL
+25.         RETURN @L.STIntersection(@P.ShortestLineTo(@L).STBuffer(0.000001)).STPointN(1);
+     END
+ GO
+ 
+ CREATE FUNCTION GeometryFunction.SplitLineHead(@L GEOMETRY, @P GEOMETRY)
+30. 
+     RETURNS GEOMETRY
+     AS
+     BEGIN
+         DECLARE @ReturnGeometry GEOMETRY
+35.         DECLARE @ThisSectionOfLine GEOMETRY
+         DECLARE @GeomString VARCHAR(MAX)
+         DECLARE @LinePoints INT = @L.STNumPoints()
+         DECLARE @Npoint INT = 1
+         DECLARE @FoundPoint BIT = 0
+40.         DECLARE @PoL GEOMETRY = @P.STBuffer(0.000001)
+ 
+         IF @L IS NULL OR @P IS NULL
+             RETURN NULL
+ 
+45.         IF @L.STStartPoint().STEquals(@P) = 1
+             RETURN NULL
+ 
+         IF @L.STEndPoint().STEquals(@P) = 1
+             RETURN @L
+50. 
+         SET @GeomString = 'LINESTRING(' + 
+             CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STX) + ' ' + CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STY) 
+         
+         WHILE @FoundPoint = 0 
+55.             BEGIN
+                 SET @ThisSectionOfLine = GEOMETRY::STGeomFromText('LINESTRING(' + 
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STX)+' '+
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STY)+','+
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STX)+ ' '+
+60.                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STY)+ ')',0)
+                 IF @ThisSectionOfLine.STIntersects(@PoL) = 1
+                     BEGIN
+                         SET @GeomString = @GeomString + ',' + CONVERT(VARCHAR(20), @P.STX)+' '+
+                             CONVERT(VARCHAR(20), @P.STY)+')'
+65.                         SET @FoundPoint = 1
+                     END
+                 ELSE
+                     BEGIN
+                         SET @GeomString = @GeomString + ',' + CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STX)+' '+
+70.                             CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STY)
+                         SET @Npoint = @Npoint + 1
+                     END
+             END
+         SET @ReturnGeometry = GEOMETRY::STGeomFromText(@GeomString,0)
+75.         RETURN @GeomString
+ 
+     END
+ GO
+ 
+80. CREATE FUNCTION GeometryFunction.SplitLineTail(@L GEOMETRY, @P GEOMETRY)
+ 
+     RETURNS GEOMETRY
+     AS
+     BEGIN
+85.         DECLARE @ReturnGeometry GEOMETRY
+         DECLARE @ThisSectionOfLine GEOMETRY
+         DECLARE @GeomString VARCHAR(MAX)
+         DECLARE @LinePoints INT = @L.STNumPoints()
+         DECLARE @Npoint INT = 1
+90.         DECLARE @FoundPoint BIT = 0
+         DECLARE @PoL GEOMETRY = @P.STBuffer(0.000001)
+ 
+         IF @L IS NULL OR @P IS NULL
+             RETURN NULL
+95. 
+         IF @L.STStartPoint().STEquals(@P) = 1
+             RETURN @L
+ 
+         IF @L.STEndPoint().STEquals(@P) = 1
+100.             RETURN NULL
+ 
+         SET @GeomString = 'LINESTRING(' 
+         
+         WHILE @FoundPoint = 0 
+105.             BEGIN
+                 SET @ThisSectionOfLine = GEOMETRY::STGeomFromText('LINESTRING(' + 
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STX)+' '+
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint).STY)+','+
+                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STX)+ ' '+
+110.                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STY)+ ')',0)
+                 IF @ThisSectionOfLine.STIntersects(@PoL) = 1
+                     BEGIN
+                         SET @GeomString = @GeomString + CONVERT(VARCHAR(20), @P.STX)+' '+
+                             CONVERT(VARCHAR(20), @P.STY)
+115.                         WHILE @Npoint < @LinePoints
+                             BEGIN
+                                 SET @GeomString = @GeomString + ',' + CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STX)+' '+
+                                     CONVERT(VARCHAR(20), @L.STPointN(@Npoint+1).STY)
+                                 SET @Npoint = @Npoint +1
+120.                             END
+                         SET @GeomString = @GeomString + ')'
+                         SET @FoundPoint = 1
+                     END
+                 ELSE
+125.                     BEGIN
+                         SET @Npoint = @Npoint + 1
+                     END
+             END
+         SET @ReturnGeometry = GEOMETRY::STGeomFromText(@GeomString,0)
+130.         RETURN @GeomString
+     END
+ GO
+     
+ --Testing
+135. 
+ DECLARE @Line GEOMETRY = GEOMETRY::STGeomFromText('LINESTRING(0 0,5 2,10 1,11 7)',0)
+ 
+ DECLARE @Point GEOMETRY = GEOMETRY::STGeomFromText('POINT(8 3)',0)
+  
+140. SELECT @Point.STBuffer(0.1) As DemoGeo,'POINT' As DemoGeom
+ 
+ UNION ALL
+ 
+ SELECT @Line.STBuffer(0.1),'LINE'
+145. 
+ UNION ALL
+ 
+ SELECT GeometryFunction.ShortestPath(@Line, @Point), 'SHORTPATH'
+ 
+150. UNION ALL
+ 
+ SELECT GeometryFunction.ShortestPathIntersectionPoint(@Line, @Point).STBuffer(0.3),'INTERSECT'
+ 
+ UNION ALL
+155. 
+ SELECT GeometryFunction.SplitLineHead(@Line,  GeometryFunction.ShortestPathIntersectionPoint(@Line, @Point)).STBuffer(0.4),'LINEBEFORE'
+ 
+ UNION ALL
+ 
+160. SELECT GeometryFunction.SplitLineTail(@Line,  GeometryFunction.ShortestPathIntersectionPoint(@Line, @Point)).STBuffer(0.4),'LINEAFTER'
